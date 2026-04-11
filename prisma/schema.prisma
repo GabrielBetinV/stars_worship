@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum MusicianStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserRole {
+  ADMIN
+  MUSICIAN
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  role     UserRole @default(MUSICIAN)
+}
+
+model Instrument {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  musicians Musician[]
+}
+
+model Musician {
+  id           Int            @id @default(autoincrement())
+  name         String
+  instrumentId Int
+  instrument   Instrument     @relation(fields: [instrumentId], references: [id])
+  status       MusicianStatus @default(ACTIVE)
+  assignments  ServiceAssignment[]
+}
+
+model Song {
+  id         Int                 @id @default(autoincrement())
+  name       String
+  key        String
+  youtubeUrl String
+  services   ServiceSong[]
+}
+
+model Service {
+  id          Int                 @id @default(autoincrement())
+  date        DateTime
+  assignments ServiceAssignment[]
+  songs       ServiceSong[]
+}
+
+model ServiceAssignment {
+  id         Int      @id @default(autoincrement())
+  serviceId  Int
+  musicianId Int
+  service    Service  @relation(fields: [serviceId], references: [id])
+  musician   Musician @relation(fields: [musicianId], references: [id])
+}
+
+model ServiceSong {
+  id        Int     @id @default(autoincrement())
+  serviceId Int
+  songId    Int
+  service   Service @relation(fields: [serviceId], references: [id])
+  song      Song    @relation(fields: [songId], references: [id])
+}
